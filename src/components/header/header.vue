@@ -1,6 +1,6 @@
 <template>
   <div>
-    heaer component
+    heaer components yoho
   </div>
 </template>
 
