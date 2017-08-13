@@ -1,6 +1,6 @@
 <template>
   <div>
-    heaer components yoho
+    头部显示
   </div>
 </template>
 
