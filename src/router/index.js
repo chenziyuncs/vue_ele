@@ -8,7 +8,7 @@ import seller from '../components/seller/seller.vue'
 Vue.use(Router)
 
 export default new Router({
-  
+  linkActiveClass:"active",
   routes: [
     {
       path:'/',
