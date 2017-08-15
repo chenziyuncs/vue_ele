@@ -18,7 +18,23 @@
 
 <script>
 import header from './components/header/header.vue'
+import axios from 'axios'
 export default {
+
+  created(){
+    //使用vue-resource发送ajax请求express提供的模拟接口
+    this.$http.get('/api/goods')
+      .then(response =>{
+        const result = response.body
+        console.log('vue-resource',result)
+      })
+      //使用axios发送ajax请求mockjs提供的模拟接口
+    axios.get('/api2/goods')
+      .then(response =>{
+        const result = response.data
+        console.log('axios',result)
+      })
+  },
   components:{
     'ele-header':header
   }
