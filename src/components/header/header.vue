@@ -2,97 +2,95 @@
   <div class="header">
     <div class="content-wrapper">
       <div class="avatar">
-          <img src="http://static.galileo.xiaojukeji.com/static/tms/seller_avatar_256px.jpg" width="64px" height="64px" />
+          <img :src="seller.avatar" width="64px" height="64px" />
       </div>
       <div class="content">
         <div class="title">
           <span class="brand"></span>
-          <span class="name">粥品香坊(大运村)</span>
+          <span class="name">{{seller.name}}</span>
         </div>
         <div class="description">
-          蜂鸟专送/38分钟送达
+          {{seller.description}}/{{seller.deliveryTime}}分钟送达
         </div>
-        <div class="supports">
-          <span class="icon decrease"></span>
-          <span class="text">在线支付满28减5，满50减10</span>
+         <div class="supports" v-if="seller.supports">
+          <!--使用v-if有值才解析否则seller.supports[0]获取的是undefined -->
+          <span class="icon" :class="supportClases[seller.supports[0].type]"></span>
+          <span class="text">{{seller.supports[0].description}}</span>
           </div>
       </div>
-      <div class="support-count">
-        <span>5个</span>
+      <div class="support-count" v-if="seller.supports" @click="showMask(true)">
+        <span>{{seller.supports.length}}</span>
         <span class="icon-keyboard_arrow_right"></span>
       </div>
     </div>
-    <div class="bulletin-wrapper">
+    <div class="bulletin-wrapper"  @click="showMask(true)">
       <span class="bulletin-title"></span>
       <span class="bulletin-text">
-        粥品香坊其烹饪粥料的秘方源于中国千年古法，在融和现代制作工艺，由世界烹饪大师屈浩先生领衔研发。坚守纯天然、0添加的良心品质深得消费者青睐，发展至今成为粥类的引领品牌。是2008年奥运会和2013年园博会指定餐饮服务商。
+        {{seller.bulletin}}
       </span>
       <span class="icon-keyboard_arrow_right"></span>
     </div>
     <div class="background">
-      <img src="http://static.galileo.xiaojukeji.com/static/tms/seller_avatar_256px.jpg" width="100%" height="100%" />
+      <img :src="seller.avatar" width="100%" height="100%" />
     </div>
-    <div class="mask">
-      <div class="mask-wrapper">
-        <div class="mask-main">
-          <h1 class="title">粥品香坊(大运村)</h1>
-          <div class="stars-wrapper">
-            <div class="starts stars-24">
-              <span class="star on"></span>
-              <span class="star on"></span>
-              <span class="star on"></span>
-              <span class="star half"></span>
-              <span class="star off"></span>
+    <transition name="fade">
+      <div class="mask" v-show="isShow" >
+        <div class="mask-wrapper">
+          <div class="mask-main">
+            <h1 class="title">{{seller.name}}</h1>
+            <div class="stars-wrapper">
+              <stars :score="seller.score" :size="48"></stars>
+            </div>
+            <div class="info">
+              <div class="line"></div>
+              <div class="text">优惠信息</div>
+              <div class="line"></div>
+            </div>
+            <ul class="list">
+              <li class="item" v-for="(support,index) in seller.supports" :key="index">
+                <span class="icon" :class="supportClases[support.type]"></span>
+                <span class="text">{{support.description}}</span>
+              </li>
+            </ul>
+            <div class="info">
+              <div class="line"></div>
+              <div class="text">商家公告</div>
+              <div class="line"></div>
+            </div>
+            <div class="content">
+              <p class="text">
+                {{seller.bulletin}}
+              </p>
             </div>
           </div>
-          <div class="info">
-            <div class="line"></div>
-            <div class="text">优惠信息</div>
-            <div class="line"></div>
-          </div>
-          <ul class="list">
-            <li>
-              <span class="icon decrease"></span>
-              <span class="text">在线支付满28减2个隔壁老王</span>
-            </li>
-            <li>
-              <span class="icon decrease"></span>
-              <span class="text">vc无限果汁全场8折只限老司机</span>
-            </li>
-            <li>
-              <span class="icon decrease"></span>
-              <span class="text">双人原谅绿套餐</span>
-            </li>
-            <li>
-              <span class="icon decrease"></span>
-              <span class="text">该商家支持发票，请下单写好发票</span>
-            </li>
-            <li>
-              <span class="icon decrease"></span>
-              <span class="text">已加入“隔壁老王培养”计划，食品安全保障</span>
-            </li>
-          </ul>
-          <div class="info">
-            <div class="line"></div>
-            <div class="text">商家公告</div>
-            <div class="line"></div>
-          </div>
-          <div class="content">
-            <p class="text">
-              粥品香坊其烹饪粥料的秘方来源于中国千年古法，在融合现代制作工艺，由世界烹饪大师屈浩先生领衔研发。坚守纯天然，0添加的良心品质深得消费者青睐，发展至今称为粥类引领品牌。是2008年奥运会和2013年园博会指定餐饮服务商。
-            </p>
-          </div>
+        </div>
+        <div class="mask-footer" @click="showMask(false)">
+          <span class="icon-close"></span>
         </div>
       </div>
-      <div class="mask-footer">
-        <span class="icon-close"></span>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script>
-  export default {}
+import stars from '../stars/stars.vue'
+  export default {
+    props:['seller'],
+    data(){
+      return {
+        isShow:false,
+        supportClases:['decrease','discount','guarantee','invoice','special']
+      }
+    },
+    methods:{
+      showMask(isShow){
+        this.isShow = isShow
+      }
+    },
+    components:{
+      stars
+    }
+  }
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
@@ -222,6 +220,10 @@
       background-color rgba(7,17,27,.8)
       z-index 99
       overflow auto
+      &.fade-enter-active, &.fade-leave-active
+        transition opacity  .5s
+      &fade-enter, &.fade-leave-to
+        opacity   0
       .mask-wrapper
         min-height 100%
         .mask-main
@@ -235,23 +237,6 @@
           .stars-wrapper
             height 24px
             margin 16px 0 28px  0
-            .starts
-              text-align center
-              .star
-                display inline-block
-                background-repeat no-repeat
-                background-size 100%  100%
-              &.stars-24
-                .star
-                  width 20px
-                  height 19px
-                  &.on
-                    bg-image("../stars/star36_on")
-                  &.half
-                    bg-image("../stars/star36_half")
-                  &.off
-                    bg-image("../stars/star36_off")
-
           .info
             width 80%
             display flex
