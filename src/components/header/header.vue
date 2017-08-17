@@ -13,7 +13,7 @@
           {{seller.description}}/{{seller.deliveryTime}}分钟送达
         </div>
          <div class="supports" v-if="seller.supports">
-          <!--使用v-if有值才解析否则seller.supports[0]获取的是undefined -->
+          <!--使用v-if有值才解析,否则seller.supports[0]获取的是undefined -->
           <span class="icon" :class="supportClases[seller.supports[0].type]"></span>
           <span class="text">{{seller.supports[0].description}}</span>
           </div>
@@ -38,6 +38,7 @@
         <div class="mask-wrapper">
           <div class="mask-main">
             <h1 class="title">{{seller.name}}</h1>
+            <!-- 星星组件 -->
             <div class="stars-wrapper">
               <stars :score="seller.score" :size="48"></stars>
             </div>

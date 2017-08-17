@@ -3,7 +3,7 @@
         <div class="goods">
             <div class="menu-wrapper" ref="menuWrapper">
                 <ul>
-                    <li @click="clickMenuItem(index)" class="menu-item" v-for="(good,index) in goods" :key="index" :class="{current:currentIndex===index}">
+                    <li @click="clickMenuItem(index,event)" class="menu-item" v-for="(good,index) in goods" :key="index" :class="{current:currentIndex===index}">
                         <span class="text border-1px">
                             <span class="icon" v-if="good.type>=0" :class="supportClases[good.type]"></span>{{good.name}}
                         </span>
@@ -31,7 +31,7 @@
                             <span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                           </div>
                           <div class="cartcontrol-wrapper">
-                            cartcontrol组件
+                            <cartcontrol :food="food" :update-food-count="updateFoodCount" ></cartcontrol>
                           </div>
                         </div>
                       </li>
@@ -46,6 +46,7 @@
 <script>
 import axios from 'axios'
 import BScroll from 'better-scroll'
+import cartcontrol from '../cartcontrol/cartcontrol'
     export default {
         data(){
             return {
@@ -78,13 +79,17 @@ import BScroll from 'better-scroll'
         },
         methods:{
           initScroll(){
-            //创建左侧的菜单列表Scroll
+            /*创建左侧的菜单列表Scroll,获取需要滑动的DOM对象
+              这边需要注意的是better-scroll只处理容器第一个子元素的滚动其他
+              元素会被忽略
+            */
             new BScroll(this.$refs.menuWrapper,{
               click:true
             })
             //创建右侧的食物列表Scroll
             this.foodsScroll = new BScroll(this.$refs.foodsWrapper,{
-              probeType:3//接收scroll事件
+              probeType:3,//接收scroll事件
+              click:true
             })
             //监视scroll
             this.foodsScroll.on('scroll',(pos) => {
@@ -105,12 +110,26 @@ import BScroll from 'better-scroll'
             })
             this.tops = tops
           },
-          clickMenuItem(index){
+          clickMenuItem(index,event){
+            if(event._construted){//过滤原生事件的回调
+              return
+            }
             //console.log(index)
             //得到对应的li
             const li = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')[index]
             //通过右侧来平滑滚动到li出
             this.foodsScroll.scrollToElement(li,300)
+          },
+          updateFoodCount(food,isAdd){
+            if(isAdd){
+              //判断用户是否第一次加，因为第一次加count没有数据
+              //food.count = 1给food对象新增属性，没有数据绑定，界面不会更新
+              //所以要用vue.set或者实例对象vue.$set区别在于前面一种要引入vue
+              !food.count?this.$set(food,"count",1):food.count++
+             
+            }else{
+              !food.count?this.$set(food,"count",0):food.count--
+            }
           }
         },
         computed: {
@@ -121,6 +140,9 @@ import BScroll from 'better-scroll'
               return scrollY>=top && scrollY<tops[index+1]
             })
           }
+        },
+        components:{
+          cartcontrol
         }
     }
 </script>
