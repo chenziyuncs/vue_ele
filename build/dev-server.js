@@ -36,7 +36,7 @@ router.get('/goods',function(req,res){
 router.get('/ratings',function(req,res){
   res.json({
     code:0,
-    data:ratings
+    data:data.ratings
   })
 })
 router.get('/seller',function(req,res){

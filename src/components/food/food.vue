@@ -19,7 +19,7 @@
                     <div class="cartcontrol-wrapper">
                         <cartcontrol :food="food" :update-food-count="updateFoodCount"></cartcontrol>
                     </div>
-                    <div class="buy" v-if="!food.count">加入购物车</div>
+                    <div class="buy" v-if="!food.count" @click="updateFoodCount(food,true)">加入购物车</div>
                 </div>
                 <split></split>
                 <div class="info">
@@ -29,10 +29,10 @@
                 <split></split>
                 <div class="rating">
                     <h1 class="title">商品评价</h1>
-                    <div class=""></div>
+                    <ratingselect @toggleOnlyContent="toggleOnlyContent" @setSelectType="setSelectType" :desc="{all:'全部',negative:'吐槽',positive:'推荐'}" :ratings="food.ratings" :only-content="onlyContent" :select-type="selectType"></ratingselect>
                     <div class="rating-wrapper">
                         <ul>
-                            <li class="rating-item border-1px" v-for="(rating,index) in food.ratings" :key="index">
+                            <li class="rating-item border-1px" v-for="(rating,index) in filterRatings" :key="index">
                                 <div class="user">
                                     <span class="name">{{rating.username}}</span>
                                     <img width="12" height="12" class="avatar" :src="rating.avatar" />
@@ -57,6 +57,7 @@ import cartcontrol from '../cartcontrol/cartcontrol.vue'
 import split from '../split/split.vue'
 import ratings from '../ratings/ratings.vue'
 import BScroll from 'better-scroll'
+import ratingselect from '../ratingselect/ratingselect.vue'
     export default {
         props:{
             food:Object,
@@ -64,7 +65,38 @@ import BScroll from 'better-scroll'
         },
         data(){
             return {
-                isShow:false
+                isShow:false,
+                onlyContent:false,
+                selectType:0
+            }
+        },
+        computed:{
+            filterRatings(){
+                const ratings = this.food.ratings
+                const {selectType,onlyContent} = this
+
+                return ratings.filter(rating =>{
+                    //selectType：0 1 2 ---- rateType(0,1)
+                    //onlyContent   true false---text
+                    if(selectType===2){//只看onlyContent
+                    /**
+                        如果selectType为2，那么就是选择全部评论，还需要判断用户
+                        是否选择下面只看有内容的评论，所以onlyContent有两种选择
+                        为false没有勾选，那么不论是否有内容都应显示，如果为true
+                        则过滤掉无内容的评论
+                     */
+                        // return  !onlyContent || rating.text.length>0
+                        return !onlyContent || !!rating.text
+                    }else {//如果不为2 要判断是否selectType是1还是2
+                        /**
+                            如果selectType为1，要看rating.rateType为1，为0也一样
+                            所以是selectType===rating.rateType
+                            还要判断onlyContent是true还是false，是否显示有内容
+                         */
+                        return selectType===rating.rateType && (!onlyContent || !!rating.text)
+
+                    }
+                })
             }
         },
         methods:{
@@ -81,12 +113,30 @@ import BScroll from 'better-scroll'
                         }
                     })
                 }
+            },
+            setSelectType(selectType){//自定义函数修改子组件触发事件,消息机制，不同的是以前用属性传过去，现在是用@click事件传值
+                this.selectType = selectType
+                /*切换的时候要注意滚动条更新的情况，
+                    但是，要在状态改变的时候进行refresh()更新
+                    所以要在它之后执行回调函数进行refresh()
+                */
+                this.$nextTick(() =>{//也就是异步刷新scroll
+                    this.scroll.refresh()
+                })
+                
+            },
+            toggleOnlyContent(){
+                this.onlyContent = !this.onlyContent
+                this.$nextTick(() =>{
+                    this.scroll.refresh()
+                })
             }
         },
         components:{
             cartcontrol,
             split,
-            ratings
+            ratings,
+            ratingselect
         }
     }
 </script>
