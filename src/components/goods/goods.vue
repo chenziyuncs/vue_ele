@@ -15,7 +15,7 @@
                   <li class="food-list food-list-hook" v-for="(good,index) in goods" :key="index">
                     <h1 class="title">{{good.name}}</h1>
                     <ul>
-                      <li class="food-item border-1px" v-for="(food,index) in good.foods" :key="index">
+                      <li class="food-item border-1px" v-for="(food,index) in good.foods" :key="index" @click="showFood(food)">
                         <div class="icon">
                           <img width="57" height="57" :src="food.icon" />
                         </div>
@@ -39,21 +39,26 @@
                   </li>
                 </ul>
             </div>
+            <shopcart :min-price="seller.minPrice" :delivery-price="seller.deliveryPrice" :foods="cartFoods" :update-food-count="updateFoodCount" :clear-cart="clearCart"></shopcart>
         </div>
-        <div class="food"></div>
+        <food class="food" :food="selectFood" :update-food-count="updateFoodCount" ref="food"></food>
     </div></template>
 
 <script>
 import axios from 'axios'
 import BScroll from 'better-scroll'
-import cartcontrol from '../cartcontrol/cartcontrol'
+import cartcontrol from '../cartcontrol/cartcontrol.vue'
+import shopcart from '../shopcart/shopcart.vue'
+import food from '../food/food.vue'
     export default {
+      props:['seller'],
         data(){
             return {
                 goods:[],
                 supportClases:['decrease','discount','guarantee','invoice','special'],
                 tops:[],
-                scrollY:0
+                scrollY:0,
+                selectFood:null
             }
         },
         created(){
@@ -121,15 +126,28 @@ import cartcontrol from '../cartcontrol/cartcontrol'
             this.foodsScroll.scrollToElement(li,300)
           },
           updateFoodCount(food,isAdd){
+            console.log('updateFoodCount()')
             if(isAdd){
               //判断用户是否第一次加，因为第一次加count没有数据
               //food.count = 1给food对象新增属性，没有数据绑定，界面不会更新
-              //所以要用vue.set或者实例对象vue.$set区别在于前面一种要引入vue
-              !food.count?this.$set(food,"count",1):food.count++
-             
+              //所以要用vue.set或者实例对象vue.$set,两者的区别在于前面一种要引入vue
+              !food.count ? this.$set(food,"count",1) : food.count++
             }else{
-              !food.count?this.$set(food,"count",0):food.count--
+              !food.count || food.count--
             }
+          },
+          clearCart(){//清空购物车
+            //调用计算属性的get
+            this.cartFoods.forEach(food =>{
+              food.count = 0
+            })
+          },
+          showFood(food){
+            //确定选中的食品，将值赋给selectFood，传给food组件
+            this.selectFood = food
+            //当点击时，显示food组件
+            this.$refs.food.show(true)
+
           }
         },
         computed: {
@@ -139,10 +157,23 @@ import cartcontrol from '../cartcontrol/cartcontrol'
             return tops.findIndex((top,index) =>{//返回第一个回调函数的结果为true的index的值
               return scrollY>=top && scrollY<tops[index+1]
             })
+          },
+          cartFoods(){//所有count>0的food的数组的计算属性
+            const foods = []
+            this.goods.forEach(good =>{
+              good.foods.forEach(food =>{
+                if(food.count){
+                  foods.push(food)
+                }
+              })
+            })
+            return foods
           }
         },
         components:{
-          cartcontrol
+          cartcontrol,
+          shopcart,
+          food
         }
     }
 </script>
