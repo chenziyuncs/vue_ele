@@ -18,7 +18,13 @@
                 </div>
             </div>
             </div>
-            <div class="ball-container"></div>
+            <div class="ball-container">
+                <transition :css="false" @before-enter="beforeDrop" @enter="Dropping" @after-enter="afterDrop" v-for="(ball,index) in balls" :key="index">
+                    <div class="ball"  v-show="ball.isShow">
+                        <div class="inner inner-hook"></div>
+                    </div>
+                </transition>
+            </div>
             <transition name="fold">
                 <div class="shopcart-list" v-show="isShow">
                 <div class="list-header">
@@ -59,7 +65,16 @@ import BScroll from 'better-scroll'
         },
         data(){
             return {
-                isShow:false
+                isShow:false,
+                balls:[//所有小球状态的数组
+                    {isShow:false},
+                    {isShow:false},
+                    {isShow:false},
+                    {isShow:false},
+                    {isShow:false},
+                    {isShow:false}
+                ],
+                droppingBalls:[]//定义一个空数组保存isShow为true的ball
             }
         },
         methods:{
@@ -68,6 +83,60 @@ import BScroll from 'better-scroll'
                     return
                 }
                 this.isShow = !this.isShow
+            },
+            //找到隐藏的小球，让它显示并开始动画
+            startDrop(startEl){
+                //在balls中找到一个isShow为false的ball对象
+                const ball = this.balls.find((ball) =>{
+                    return !ball.isShow
+                })
+                if(ball){
+                    //让对应的小球显示
+                    ball.isShow = true//一旦显示，调用动画显示周期回调
+                    //保存starEl
+                    ball.startEl = startEl
+                    //保存ball
+                    this.droppingBalls.push(ball)
+                }
+            },
+            //在显示动画开始之前调用，指定动画开始的状态
+            beforeDrop(el){//el是发生动画的小球div
+                const ball = this.droppingBalls.shift()//删除下标为0的ball，shift调用返回给ball
+                const startEl = ball.startEl
+                //计算x/y的偏移量
+                let offsetX = 0
+                let offsetY = 0 
+                const elLeft = 32
+                const elBottom = 22
+                const {left,top} = startEl.getBoundingClientRect()
+                const startElleft = left
+                const startElTop = top
+                offsetX = startElleft - elLeft
+                offsetY = -(window.innerHeight - startElTop - elBottom)
+
+                //瞬间移动到指定的位置
+                el.style.transform = `translate3d(0,${offsetY}px,0)`
+                const innerEl = el.children[0]
+                innerEl.style.transform = `translate3d(${offsetX}px,0,0)`
+                el.ball = ball
+            },
+            //在一开始动画就调用，指定动画结束时的状态
+            Dropping(el){//el是发生动画的小球div
+                //强制重排重绘
+                const temp = el.clientHeight
+                //异步指定
+                this.$nextTick(() =>{
+                    el.style.transform = `translate3d(0,0,0)`
+                    const innerEl = el.children[0]
+                    innerEl.style.transform = `translate3d(0,0,0)`
+                })
+                
+            },
+            //在动画结束时候调用，做一些收尾工作
+            afterDrop(el){//el是发生动画的小球div
+                setTimeout(() =>{
+                    el.ball.isShow = false 
+                },400)  
             }
         },
         components:{

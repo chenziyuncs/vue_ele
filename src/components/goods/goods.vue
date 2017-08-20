@@ -3,7 +3,7 @@
         <div class="goods">
             <div class="menu-wrapper" ref="menuWrapper">
                 <ul>
-                    <li @click="clickMenuItem(index,event)" class="menu-item" v-for="(good,index) in goods" :key="index" :class="{current:currentIndex===index}">
+                    <li @click="clickMenuItem(index,$event)" class="menu-item" v-for="(good,index) in goods" :key="index" :class="{current:currentIndex===index}">
                         <span class="text border-1px">
                             <span class="icon" v-if="good.type>=0" :class="supportClases[good.type]"></span>{{good.name}}
                         </span>
@@ -39,7 +39,7 @@
                   </li>
                 </ul>
             </div>
-            <shopcart :min-price="seller.minPrice" :delivery-price="seller.deliveryPrice" :foods="cartFoods" :update-food-count="updateFoodCount" :clear-cart="clearCart"></shopcart>
+            <shopcart ref="shopcart" :min-price="seller.minPrice" :delivery-price="seller.deliveryPrice" :foods="cartFoods" :update-food-count="updateFoodCount" :clear-cart="clearCart"></shopcart>
         </div>
         <food class="food" :food="selectFood" :update-food-count="updateFoodCount" ref="food"></food>
     </div></template>
@@ -97,9 +97,13 @@ import food from '../food/food.vue'
               click:true
             })
             //监视scroll
+            this.enable = true//是否自动接收最新的scrollY
             this.foodsScroll.on('scroll',(pos) => {
               //console.log(pos.y)
-              this.scrollY = Math.abs(pos.y)//滑动过程中自动收集scrollY
+              if(this.enable){
+                this.scrollY = Math.abs(pos.y)//滑动过程中自动收集scrollY
+              }
+              
             })
           },
           initTops(){
@@ -122,16 +126,27 @@ import food from '../food/food.vue'
             //console.log(index)
             //得到对应的li
             const li = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')[index]
-            //通过右侧来平滑滚动到li出
+
+            //滚动前移出scroll监听
+            this.enable = false
+            //通过右侧来平滑滚动到li处
             this.foodsScroll.scrollToElement(li,300)
+            //滚动完成后，指定scrollY，添加滚动监听
+            setTimeout(() => {
+              this.enable = true
+              this.scrollY = this.tops[index]
+            },300)
           },
-          updateFoodCount(food,isAdd){
+          updateFoodCount(food,isAdd,event){
             console.log('updateFoodCount()')
             if(isAdd){
               //判断用户是否第一次加，因为第一次加count没有数据
               //food.count = 1给food对象新增属性，没有数据绑定，界面不会更新
               //所以要用vue.set或者实例对象vue.$set,两者的区别在于前面一种要引入vue
               !food.count ? this.$set(food,"count",1) : food.count++
+
+              //让一个开始droop动画
+              this.$refs.shopcart.startDrop(event.target)
             }else{
               !food.count || food.count--
             }
